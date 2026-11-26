@@ -1,0 +1,20 @@
+# Runtime cache, output reports & local config
+cache/
+output/
+config.local.json
+*.log
+
+# Third-party binaries
+tools/exiftool.exe
+tools/exiftool_files/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+desktop.ini

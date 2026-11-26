@@ -1,0 +1,1835 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>lens-note · 镜头笔记</title>
+<style>
+:root {
+  --bg: #0c0e12;
+  --bg-elev: #14171e;
+  --bg-card: #181c24;
+  --bg-hover: #202531;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(255,255,255,0.16);
+  --text: #f3f1ec;
+  --text-muted: #9aa0ad;
+  --text-dim: #686f7d;
+  --accent: #e85d3f;
+  --accent-2: #f0a542;
+  --accent-soft: rgba(232,93,63,0.16);
+  --bar-muted: rgba(255,255,255,0.12);
+  --bar-muted-hover: rgba(255,255,255,0.22);
+  --heat-0: #1b2029;
+  --heat-1: #4d2c22;
+  --heat-2: #8a3f28;
+  --heat-3: #c74f2f;
+  --heat-4: #f0a542;
+  --shadow: 0 10px 30px rgba(0,0,0,0.35);
+  --radius: 14px;
+  --mono: ui-monospace, "Cascadia Mono", "SFMono-Regular", Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+html[data-theme="light"] {
+  --bg: #f6f4ef;
+  --bg-elev: #ffffff;
+  --bg-card: #ffffff;
+  --bg-hover: #efece4;
+  --border: rgba(20,20,20,0.09);
+  --border-strong: rgba(20,20,20,0.18);
+  --text: #1b1b1d;
+  --text-muted: #5d616b;
+  --text-dim: #8a8e98;
+  --accent: #c9472b;
+  --accent-2: #d68516;
+  --accent-soft: rgba(201,71,43,0.11);
+  --bar-muted: rgba(20,20,20,0.09);
+  --bar-muted-hover: rgba(20,20,20,0.17);
+  --heat-0: #ebe8e0;
+  --heat-1: #f4cbbd;
+  --heat-2: #e79980;
+  --heat-3: #d46243;
+  --heat-4: #b8381d;
+  --shadow: 0 8px 24px rgba(30,25,18,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.container { max-width: 1360px; margin: 0 auto; padding: 18px 22px 48px; }
+.topbar {
+  position: sticky; top: 0; z-index: 40;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 11px 22px;
+}
+.topbar-inner { max-width: 1360px; margin: 0 auto; display: flex; flex-direction: column; gap: 9px; }
+.topbar-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; }
+.brand { display: flex; align-items: baseline; gap: 10px; }
+.brand-mark {
+  font-weight: 800; font-size: 1.22rem; letter-spacing: -0.02em;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.brand-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); display: inline-block; box-shadow: 0 0 10px var(--accent); }
+.brand-sub { font-size: 0.8rem; color: var(--text-muted); max-width: 480px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.btn, .pill {
+  border: 1px solid var(--border);
+  background: var(--bg-elev);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 5px 11px;
+  font-size: 0.79rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.btn:hover, .pill:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+.pill.active { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+.btn-primary:hover { filter: brightness(1.08); background: var(--accent); }
+.filter-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.filter-group { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.filter-label { font-size: 0.74rem; color: var(--text-dim); letter-spacing: 0.03em; }
+select {
+  background: var(--bg-elev); color: var(--text); border: 1px solid var(--border);
+  border-radius: 8px; padding: 5px 10px; font-size: 0.79rem; font-family: inherit; outline: none;
+  cursor: pointer;
+}
+select:focus { border-color: var(--accent); }
+.chip-active {
+  background: var(--accent-soft); color: var(--accent); border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px; padding: 4px 10px; font-size: 0.78rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+}
+.kpi-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+.kpi-card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 4px;
+}
+.kpi-card.clickable { cursor: pointer; }
+.kpi-card.clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
+.kpi-title { font-size: 0.75rem; color: var(--text-muted); }
+.kpi-value { font-size: 1.48rem; font-weight: 800; font-family: var(--mono); letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpi-value.sm { font-size: 1.02rem; font-family: var(--sans); line-height: 1.3; white-space: normal; }
+.kpi-sub { font-size: 0.74rem; color: var(--text-dim); }
+.kpi-accent { color: var(--accent-2); }
+.grid-2 { display: grid; grid-template-columns: 1.35fr 1fr; gap: 16px; margin-bottom: 16px; }
+.grid-hour-orient { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 16px; }
+.card {
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px;
+  min-width: 0;
+}
+.card-full { margin-bottom: 16px; }
+.card-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.card-title { font-size: 1rem; font-weight: 700; letter-spacing: -0.01em; }
+.card-desc { font-size: 0.78rem; color: var(--text-muted); }
+.seg { display: inline-flex; background: var(--bg); padding: 3px; border-radius: 9px; border: 1px solid var(--border); gap: 2px; flex-wrap: wrap; }
+.seg button {
+  border: none; background: transparent; color: var(--text-muted); padding: 4px 9px;
+  font-size: 0.76rem; border-radius: 6px; cursor: pointer; font-family: inherit;
+}
+.seg button.active { background: var(--bg-hover); color: var(--text); font-weight: 600; }
+.svg-wrap { width: 100%; overflow-x: auto; }
+svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+.legend-row { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.76rem; color: var(--text-muted); align-items: center; }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; }
+.swatch { width: 11px; height: 11px; border-radius: 3px; display: inline-block; }
+.table-wrap { overflow-x: auto; max-height: 410px; overflow-y: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+th {
+  position: sticky; top: 0; background: var(--bg-card); z-index: 2;
+  text-align: left; font-size: 0.74rem; color: var(--text-muted); font-weight: 600;
+  padding: 8px 10px; border-bottom: 1px solid var(--border-strong); white-space: nowrap;
+}
+td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr.clickable-row { cursor: pointer; }
+tr.clickable-row:hover td { background: var(--bg-hover); }
+tr.active-row td { background: var(--accent-soft); }
+.num { font-family: var(--mono); text-align: right; white-space: nowrap; }
+.rate-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.rate-track { width: 76px; height: 6px; border-radius: 99px; background: var(--bar-muted); overflow: hidden; }
+.rate-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.orient-bar { height: 16px; border-radius: 999px; overflow: hidden; display: flex; background: var(--bar-muted); margin: 4px 0 10px; }
+.orient-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.orient-box { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.orient-box .lbl { font-size: 0.76rem; color: var(--text-muted); }
+.orient-box .big { font-size: 1.2rem; font-weight: 800; font-family: var(--mono); margin: 2px 0; }
+.wrapped-box {
+  background: radial-gradient(circle at 85% 15%, var(--accent-soft), transparent 55%), var(--bg-card);
+  border: 1px solid var(--border-strong);
+}
+.persona-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 20px; align-items: center; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.tag {
+  padding: 5px 12px; border-radius: 999px; font-size: 0.82rem; font-weight: 600;
+  background: var(--accent-soft); color: var(--accent-2); border: 1px solid color-mix(in srgb, var(--accent-2) 35%, transparent);
+}
+.wrapped-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+.wstat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; }
+.wstat-k { font-size: 0.74rem; color: var(--text-muted); }
+.wstat-v { font-size: 1.05rem; font-weight: 700; margin-top: 2px; word-break: break-word; }
+.health-footer {
+  margin-top: 20px; padding: 14px 18px; border-radius: var(--radius);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  font-size: 0.76rem; color: var(--text-muted); display: flex; flex-wrap: wrap; gap: 8px 18px; justify-content: space-between;
+}
+.tooltip {
+  position: fixed; z-index: 100; pointer-events: none; display: none;
+  background: var(--bg-elev); color: var(--text); border: 1px solid var(--border-strong);
+  border-radius: 10px; padding: 9px 12px; font-size: 0.78rem; box-shadow: var(--shadow); max-width: 280px;
+}
+.tooltip b { color: var(--accent-2); }
+.empty-msg { padding: 36px 16px; text-align: center; color: var(--text-muted); font-size: 0.88rem; }
+@media (max-width: 1120px) {
+  .kpi-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .grid-2, .grid-hour-orient, .persona-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .container { padding: 12px 12px 36px; }
+  .topbar { padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="topbar-row">
+      <div class="brand">
+        <span class="brand-mark"><span class="brand-dot"></span><span>lens-note</span><span id="brandSubTitle" style="font-weight:500;font-size:0.92rem;color:var(--text-muted)"></span></span>
+        <span class="brand-sub" id="rootsLabel"></span>
+      </div>
+      <div class="actions">
+        <button class="pill" id="btnBurstFold" type="button"></button>
+        <button class="btn" id="btnReset" type="button"></button>
+        <button class="btn" id="btnTheme" type="button"></button>
+        <button class="btn" id="btnLang" type="button"></button>
+        <button class="btn btn-primary" id="btnExportPng" type="button"></button>
+      </div>
+    </div>
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-label" id="lblYear"></span>
+        <select id="yearSelect"></select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label" id="lblMonth"></span>
+        <select id="monthSelect"></select>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label" id="lblOuting"></span>
+        <select id="outingSelect" style="max-width:230px"></select>
+      </div>
+      <div class="filter-group" id="gearSegGroup">
+        <span class="filter-label" id="lblGear"></span>
+        <div class="seg" id="gearSeg"></div>
+      </div>
+      <div class="filter-group">
+        <span class="filter-label" id="lblThresh"></span>
+        <div class="seg" id="threshSeg"></div>
+      </div>
+      <div id="activeChips" class="filter-group"></div>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+  <section class="kpi-grid" id="kpiGrid"></section>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tTrend"></div>
+          <div class="card-desc" id="dTrend"></div>
+        </div>
+        <div class="legend-row" id="legendTrend"></div>
+      </div>
+      <div class="svg-wrap" id="trendChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tCalendar"></div>
+          <div class="card-desc" id="dCalendar"></div>
+        </div>
+        <div class="seg" id="calYearTabs"></div>
+      </div>
+      <div class="svg-wrap" id="calendarChart"></div>
+    </div>
+  </section>
+
+  <section class="grid-2">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tFocal"></div>
+          <div class="card-desc" id="dFocal"></div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <div class="seg" id="focalModeSeg"></div>
+          <div class="seg" id="focalGroupSeg"></div>
+        </div>
+      </div>
+      <div class="svg-wrap" id="focalChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tQuad"></div>
+          <div class="card-desc" id="dQuad"></div>
+        </div>
+      </div>
+      <div class="svg-wrap" id="quadChart"></div>
+    </div>
+  </section>
+
+  <section class="card card-full">
+    <div class="card-head">
+      <div>
+        <div class="card-title" id="tRank"></div>
+        <div class="card-desc" id="dRank"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <div class="seg" id="rankTabSeg"></div>
+        <div class="seg" id="rankSortSeg"></div>
+        <label style="font-size:0.78rem;color:var(--text-muted);display:inline-flex;align-items:center;gap:5px">
+          <span id="lblMinSamples"></span>
+          <select id="minSamplesSelect">
+            <option value="1">1</option>
+            <option value="5">5</option>
+            <option value="10" selected>10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+          </select>
+        </label>
+      </div>
+    </div>
+    <div class="table-wrap" id="rankTableWrap"></div>
+  </section>
+
+  <section class="grid-hour-orient">
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tHour"></div>
+          <div class="card-desc" id="dHour"></div>
+        </div>
+        <div class="legend-row" id="legendHour"></div>
+      </div>
+      <div class="svg-wrap" id="hourChart"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div>
+          <div class="card-title" id="tOrient"></div>
+          <div class="card-desc" id="dOrient"></div>
+        </div>
+      </div>
+      <div id="orientWrap"></div>
+    </div>
+  </section>
+
+  <section class="card card-full wrapped-box" id="wrappedSection"></section>
+
+  <footer class="health-footer" id="healthFooter"></footer>
+</main>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = __LENS_NOTE_DATA__;
+const DEFAULT_LANG = "__DEFAULT_LANG__";
+
+const I18N = {
+  zh: {
+    brandSub: "镜头笔记 · 摄影数据复盘",
+    reset: "重置",
+    exportPng: "导出卡片 PNG",
+    themeDark: "暗房",
+    themeLight: "画报",
+    burstFold: "连拍归组",
+    burstFoldTip: "基于相机硬件连拍标记、连拍序号、包围曝光与毫秒间隔精准归组，绝不误伤正常单拍（已折合 {0} 张）",
+    year: "年份",
+    allYears: "全部年份",
+    month: "月份",
+    allMonths: "全部月份",
+    monthFmt: "{0}月",
+    outing: "拍摄",
+    allOutings: "全部拍摄",
+    gear: "器材",
+    gearAll: "全部",
+    gearCam: "相机",
+    gearDrone: "无人机",
+    gearGimbal: "云台相机",
+    gearAction: "运动相机",
+    gearPhone: "手机",
+    thresh: "出片口径",
+    th1: "≥1★/旗标",
+    th2: "≥2★",
+    th3: "≥3★",
+    th4: "≥4★",
+    th5: "5★",
+    lensChip: "镜头: ",
+    dateChip: "日期: ",
+    kpiShots: "有效构图次数",
+    kpiShotsRaw: "总快门数 (去重)",
+    kpiShotsSub: "合并 RAW+JPG {0} 对 · 归组 {1} 张连拍",
+    kpiShotsSubRaw: "合并 RAW+JPG {0} 对",
+    kpiDays: "活跃拍摄天数",
+    kpiDaysSub: "平均每次拍摄 {0} 张",
+    kpiKeepers: "打星出片数",
+    kpiRateSub: "综合出片率 {0}%",
+    kpiFocal: "高频等效焦段",
+    kpiFocalSub: "占全部有焦段照片 {0}%",
+    kpiMvp: "年度 MVP 镜头",
+    kpiMvpSub: "{0} 张出片 · {1}% 出片率",
+    kpiPeak: "最高光拍摄",
+    kpiPeakSub: "{0} 张出片 · {1} 张",
+    tTrend: "月度拍摄量与出片率趋势",
+    dTrend: "柱形为总拍摄与出片数，折线为出片率；点击柱条可快速筛选该月",
+    tCalendar: "年度拍摄日历热力图",
+    dCalendar: "颜色越深当天拍摄越多，点击有数据日期直接钻取当日复盘",
+    tFocal: "焦段使用分布与出片率",
+    dFocal: "按 7 档行业标准视角收纳半幅换算偏差；点击下方任意镜头可透视其内部焦段热力图",
+    eq35: "35mm 等效",
+    physMm: "物理焦距",
+    buckets: "7 档经典视角",
+    exactMm: "精确毫米",
+    bUltra: "超广 ≤20",
+    bWide: "广角 21-30",
+    bStreet: "人文 31-44",
+    bStd: "标准 45-64",
+    bPort: "人像 65-115",
+    bTele: "长焦 116-250",
+    bSuper: "超长 >250",
+    tQuad: "镜头「真香 vs 吃灰」四象限",
+    dQuad: "横轴=拍摄占比，纵轴=出片率，气泡大小=出片数；点击气泡可下钻该镜头",
+    qTopRight: "主力神镜",
+    qTopLeft: "精锐宝藏",
+    qBotRight: "高频待筛",
+    qBotLeft: "吃灰预警",
+    tRank: "多维出片率排行榜",
+    dRank: "点击任意镜头或单次拍摄行即可联动全页过滤",
+    tabLens: "镜头榜",
+    tabCam: "机身榜",
+    tabOuting: "单次拍摄榜",
+    sortRate: "按出片率",
+    sortKeepers: "按出片数",
+    sortShots: "按拍摄量",
+    minSamples: "最少样本≥",
+    colName: "名称",
+    colShots: "拍摄量",
+    colKeepers: "出片数",
+    colRate: "出片率",
+    colAvgStar: "打星均分",
+    colTopFocal: "常用焦段",
+    tOrient: "横竖构图与出片率",
+    dOrient: "自动识别 EXIF 旋转后的真实横屏 / 竖屏画幅",
+    landscape: "横屏",
+    portrait: "竖屏",
+    square: "方画幅",
+    tHour: "24 小时黄金时间热力图",
+    dHour: "各时段拍摄量与出片率曲线，高亮标出晨光与日落黄金时段",
+    legShots: "全部照片",
+    legKeepers: "打星出片",
+    legRate: "出片率 (%)",
+    unknownLens: "未知 / 手动镜头",
+    noData: "当前筛选条件下暂无符合的数据",
+    wrappedTitle: "摄影人格与分享卡片",
+    wrappedSub: "基于当前筛选范围实时生成，点击右上角「导出卡片 PNG」可保存高清长图",
+    wScopeAll: "全部档案",
+    wFavoriteFocal: "本命焦段",
+    wMvpGear: "最佳拍档",
+    wPeakDay: "高光拍摄",
+    wShutterWindow: "黄金出片时段",
+    healthLeft: "数据健康度：去重后 {0} 张逻辑照片（合并 RAW+JPG {1} 对 · 识别 {2} 组连拍折合 {3} 张）· 跳过视频 {4} 个 · 无镜头 EXIF {5} 张",
+    healthRight: "星标库：{0} · 生成时间：{1}",
+    healthNoDb: "仅文件内嵌与 XMP",
+    less: "少",
+    more: "多",
+    dawnBand: "日出黄金",
+    sunsetBand: "日落/蓝调"
+  },
+  en: {
+    brandSub: "Photography Retrospective",
+    reset: "Reset",
+    exportPng: "Export PNG",
+    themeDark: "Darkroom",
+    themeLight: "Paper",
+    burstFold: "Fold Bursts",
+    burstFoldTip: "Precision 3-tier folding via hardware EXIF drive mode, sequence #, AEB, and sub-second gaps without touching single shots ({0} frames folded)",
+    year: "Year",
+    allYears: "All Years",
+    month: "Month",
+    allMonths: "All Months",
+    monthFmt: "M{0}",
+    outing: "Shoot",
+    allOutings: "All Shoots",
+    gear: "Gear",
+    gearAll: "All",
+    gearCam: "Camera",
+    gearDrone: "Drone",
+    gearGimbal: "Gimbal",
+    gearAction: "Action",
+    gearPhone: "Phone",
+    thresh: "Keeper Rule",
+    th1: "≥1★/Pick",
+    th2: "≥2★",
+    th3: "≥3★",
+    th4: "≥4★",
+    th5: "5★",
+    lensChip: "Lens: ",
+    dateChip: "Date: ",
+    kpiShots: "Compositions",
+    kpiShotsRaw: "Logical Shots",
+    kpiShotsSub: "Deduped {0} RAW+JPG · folded {1} bursts",
+    kpiShotsSubRaw: "Deduped {0} RAW+JPG pairs",
+    kpiDays: "Active Days",
+    kpiDaysSub: "Avg {0} shots / shoot",
+    kpiKeepers: "Keeper Shots",
+    kpiRateSub: "Overall keeper rate {0}%",
+    kpiFocal: "Top 35mm Focal",
+    kpiFocalSub: "{0}% of focal-tagged shots",
+    kpiMvp: "MVP Lens",
+    kpiMvpSub: "{0} keepers · {1}% rate",
+    kpiPeak: "Top Shoot",
+    kpiPeakSub: "{0} keepers · {1} shots",
+    tTrend: "Monthly Volume & Keeper Rate",
+    dTrend: "Bars show total vs keepers, line shows keeper rate; click any bar to filter",
+    tCalendar: "Annual Shooting Calendar",
+    dCalendar: "Darker cells mean more shots; click any active day to inspect",
+    tFocal: "Focal Length Usage & Keeper Rate",
+    dFocal: "7 standard FOV tiers smooth out APS-C crop shifts; click any lens below to inspect zoom heatmap",
+    eq35: "35mm Eq",
+    physMm: "Physical mm",
+    buckets: "7 Standard Tiers",
+    exactMm: "Exact mm",
+    bUltra: "Ultra ≤20",
+    bWide: "Wide 21-30",
+    bStreet: "Street 31-44",
+    bStd: "Std 45-64",
+    bPort: "Port 65-115",
+    bTele: "Tele 116-250",
+    bSuper: "Super >250",
+    tQuad: "Lens Sweet Spot vs Dust Collector",
+    dQuad: "X = shot share %, Y = keeper rate %, size = keepers; click bubble to drill down",
+    qTopRight: "Workhorse MVP",
+    qTopLeft: "Hidden Gem",
+    qBotRight: "High Volume",
+    qBotLeft: "Dust Collector",
+    tRank: "Multi-Dimension Keeper Rankings",
+    dRank: "Click any lens or shoot row to cross-filter the entire page",
+    tabLens: "Lenses",
+    tabCam: "Cameras",
+    tabOuting: "Shoots",
+    sortRate: "Keeper Rate",
+    sortKeepers: "Keepers",
+    sortShots: "Shots",
+    minSamples: "Min shots≥",
+    colName: "Name",
+    colShots: "Shots",
+    colKeepers: "Keepers",
+    colRate: "Rate",
+    colAvgStar: "Avg ★",
+    colTopFocal: "Top Focal",
+    tOrient: "Orientation & Keeper Rate",
+    dOrient: "Orientation corrected with EXIF rotation tags",
+    landscape: "Landscape",
+    portrait: "Portrait",
+    square: "Square",
+    tHour: "24-Hour Golden Hour Profile",
+    dHour: "Hourly shot count and keeper rate with sunrise/sunset bands",
+    legShots: "All Shots",
+    legKeepers: "Keepers",
+    legRate: "Keeper Rate (%)",
+    unknownLens: "Unknown / Manual Lens",
+    noData: "No photos match the current filters",
+    wrappedTitle: "Photography Persona & Share Card",
+    wrappedSub: "Live-computed from current filters; click Export PNG to save a 2x poster",
+    wScopeAll: "Full Archive",
+    wFavoriteFocal: "Signature Focal",
+    wMvpGear: "MVP Gear",
+    wPeakDay: "Highlight Shoot",
+    wShutterWindow: "Golden Window",
+    healthLeft: "Data Health: {0} logical shots (deduped {1} RAW+JPG · {2} burst groups folded {3} frames) · skipped {4} videos · {5} unknown lens",
+    healthRight: "Rating DBs: {0} · Built: {1}",
+    healthNoDb: "Embedded & XMP only",
+    less: "Less",
+    more: "More",
+    dawnBand: "Dawn Golden",
+    sunsetBand: "Sunset/Blue"
+  }
+};
+
+function loadPref(key, fallback) {
+  try { return localStorage.getItem(key) || fallback; } catch (e) { return fallback; }
+}
+function savePref(key, val) {
+  try { localStorage.setItem(key, val); } catch (e) {}
+}
+
+const PRESENT_GEAR_CODES = (() => {
+  const s = new Set();
+  for (let i = 0; i < DATA.rows.length; i++) s.add(DATA.rows[i][5]);
+  return [0, 1, 2, 3, 4].filter(c => s.has(c));
+})();
+
+const state = {
+  lang: loadPref("ln_lang", DEFAULT_LANG) === "en" ? "en" : "zh",
+  theme: loadPref("ln_theme", "dark") === "light" ? "light" : "dark",
+  year: "ALL",
+  month: "ALL",
+  outing: "ALL",
+  gear: "ALL",
+  thresh: 1,
+  burstFold: true,
+  lensIdx: null,
+  dateStr: null,
+  calYear: DATA.years.length ? DATA.years[DATA.years.length - 1] : "",
+  focalMode: "eq35",
+  focalGroup: "buckets",
+  rankTab: "lens",
+  rankSort: "rate",
+  minSamples: 10
+};
+
+function tr(key, ...args) {
+  let s = (I18N[state.lang] && I18N[state.lang][key]) || I18N.en[key] || key;
+  args.forEach((v, i) => { s = s.replace("{" + i + "}", v); });
+  return s;
+}
+function escHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[c]));
+}
+function effRating(row) {
+  return state.burstFold ? row[12] : row[8];
+}
+function effPick(row) {
+  return state.burstFold ? row[13] : row[9];
+}
+function isKeeper(row, thresh) {
+  const r = effRating(row), pk = effPick(row);
+  if (thresh <= 1) return r >= 1 || pk === 1;
+  return r >= thresh;
+}
+function lensDisplay(idx) {
+  const obj = DATA.lenses[idx];
+  return (obj && obj.name) ? obj.name : tr("unknownLens");
+}
+
+const DATE_YM = DATA.dates.map(d => d.slice(0, 7));
+const DATE_Y = DATA.dates.map(d => d.slice(0, 4));
+const DATE_M = DATA.dates.map(d => d.slice(5, 7));
+
+function gearFilterCode() {
+  return state.gear === "camera" ? 0 : state.gear === "drone" ? 1 : state.gear === "gimbal" ? 2 : state.gear === "action" ? 3 : state.gear === "phone" ? 4 : -1;
+}
+
+function getFilteredRows(ignoreLensAndDate = false) {
+  const gc = gearFilterCode();
+  const out = [];
+  for (let i = 0; i < DATA.rows.length; i++) {
+    const r = DATA.rows[i];
+    if (state.burstFold && r[11] === 0) continue;
+    if (gc !== -1 && r[5] !== gc) continue;
+    if (state.year !== "ALL" && DATE_Y[r[0]] !== state.year) continue;
+    if (state.month !== "ALL" && DATE_M[r[0]] !== state.month) continue;
+    if (state.outing !== "ALL" && r[2] !== Number(state.outing)) continue;
+    if (!ignoreLensAndDate) {
+      if (state.lensIdx !== null && r[4] !== state.lensIdx) continue;
+      if (state.dateStr !== null && DATA.dates[r[0]] !== state.dateStr) continue;
+    }
+    out.push(r);
+  }
+  return out;
+}
+
+const tooltipEl = document.getElementById("tooltip");
+function showTip(ev, html) {
+  tooltipEl.innerHTML = html;
+  tooltipEl.style.display = "block";
+  const pad = 14;
+  let x = ev.clientX + pad, y = ev.clientY + pad;
+  if (x + 280 > window.innerWidth) x = ev.clientX - 280;
+  if (y + 140 > window.innerHeight) y = ev.clientY - 120;
+  tooltipEl.style.left = Math.max(8, x) + "px";
+  tooltipEl.style.top = Math.max(8, y) + "px";
+}
+function hideTip() { tooltipEl.style.display = "none"; }
+function bindTip(svgContainer) {
+  svgContainer.querySelectorAll("[data-tip]").forEach(el => {
+    el.addEventListener("mousemove", e => showTip(e, el.getAttribute("data-tip")));
+    el.addEventListener("mouseleave", hideTip);
+  });
+}
+
+function renderControls() {
+  document.documentElement.setAttribute("data-theme", state.theme);
+  document.documentElement.lang = state.lang === "zh" ? "zh-CN" : "en";
+
+  document.getElementById("brandSubTitle").textContent = tr("brandSub");
+  const roots = (DATA.health && DATA.health.scanned_roots) || [];
+  document.getElementById("rootsLabel").textContent = roots.join(" + ");
+  document.getElementById("btnReset").textContent = tr("reset");
+  document.getElementById("btnTheme").textContent = state.theme === "dark" ? ("☀️ " + tr("themeLight")) : ("🌙 " + tr("themeDark"));
+  document.getElementById("btnLang").textContent = state.lang === "zh" ? "EN" : "中文";
+  document.getElementById("btnExportPng").textContent = "📷 " + tr("exportPng");
+
+  const foldedCnt = (DATA.health && DATA.health.burst_folded_shots) || 0;
+  const bBtn = document.getElementById("btnBurstFold");
+  bBtn.className = "pill" + (state.burstFold ? " active" : "");
+  bBtn.textContent = tr("burstFold") + (foldedCnt > 0 ? ` (${foldedCnt})` : "");
+  bBtn.title = tr("burstFoldTip", foldedCnt);
+
+  document.getElementById("lblYear").textContent = tr("year");
+  document.getElementById("lblMonth").textContent = tr("month");
+  document.getElementById("lblOuting").textContent = tr("outing");
+  document.getElementById("lblGear").textContent = tr("gear");
+  document.getElementById("lblThresh").textContent = tr("thresh");
+
+  const gc = gearFilterCode();
+
+  // Year select
+  const yCounts = {};
+  let yTotal = 0;
+  for (let i = 0; i < DATA.rows.length; i++) {
+    const r = DATA.rows[i];
+    if (state.burstFold && r[11] === 0) continue;
+    if (gc !== -1 && r[5] !== gc) continue;
+    const y = DATE_Y[r[0]];
+    yCounts[y] = (yCounts[y] || 0) + 1;
+    yTotal++;
+  }
+  const ySel = document.getElementById("yearSelect");
+  ySel.innerHTML = "";
+  const yAllOpt = document.createElement("option");
+  yAllOpt.value = "ALL";
+  yAllOpt.textContent = `${tr("allYears")} (${yTotal.toLocaleString()})`;
+  ySel.appendChild(yAllOpt);
+  DATA.years.forEach(y => {
+    const opt = document.createElement("option");
+    opt.value = y;
+    opt.textContent = `${y} (${(yCounts[y] || 0).toLocaleString()})`;
+    ySel.appendChild(opt);
+  });
+  ySel.value = state.year;
+
+  // Month select (only months with >0 shots or currently selected)
+  const mCounts = new Array(13).fill(0);
+  let mTotal = 0;
+  for (let i = 0; i < DATA.rows.length; i++) {
+    const r = DATA.rows[i];
+    if (state.burstFold && r[11] === 0) continue;
+    if (gc !== -1 && r[5] !== gc) continue;
+    if (state.year !== "ALL" && DATE_Y[r[0]] !== state.year) continue;
+    const m = Number(DATE_M[r[0]]);
+    if (m >= 1 && m <= 12) mCounts[m]++;
+    mTotal++;
+  }
+  const mSel = document.getElementById("monthSelect");
+  mSel.innerHTML = "";
+  const mAllOpt = document.createElement("option");
+  mAllOpt.value = "ALL";
+  mAllOpt.textContent = `${tr("allMonths")} (${mTotal.toLocaleString()})`;
+  mSel.appendChild(mAllOpt);
+  for (let m = 1; m <= 12; m++) {
+    const ms = String(m).padStart(2, "0");
+    if (mCounts[m] === 0 && state.month !== ms) continue;
+    const opt = document.createElement("option");
+    opt.value = ms;
+    opt.textContent = `${tr("monthFmt", ms)} (${mCounts[m].toLocaleString()})`;
+    mSel.appendChild(opt);
+  }
+  mSel.value = state.month;
+
+  // Outing select
+  const outShotCounts = new Array(DATA.outings.length).fill(0);
+  for (let i = 0; i < DATA.rows.length; i++) {
+    const r = DATA.rows[i];
+    if (state.burstFold && r[11] === 0) continue;
+    if (gc !== -1 && r[5] !== gc) continue;
+    if (state.year !== "ALL" && DATE_Y[r[0]] !== state.year) continue;
+    if (state.month !== "ALL" && DATE_M[r[0]] !== state.month) continue;
+    outShotCounts[r[2]]++;
+  }
+  const oSel = document.getElementById("outingSelect");
+  oSel.innerHTML = "";
+  const optAll = document.createElement("option");
+  optAll.value = "ALL";
+  optAll.textContent = tr("allOutings");
+  oSel.appendChild(optAll);
+  DATA.outings.forEach((o, idx) => {
+    if (outShotCounts[idx] === 0 && String(idx) !== String(state.outing)) return;
+    const opt = document.createElement("option");
+    opt.value = String(idx);
+    opt.textContent = `${o.name} (${outShotCounts[idx]})`;
+    oSel.appendChild(opt);
+  });
+  oSel.value = state.outing;
+
+  // Dynamic Gear Type selector (hide absent types; hide whole group if <=1 type)
+  const gGroup = document.getElementById("gearSegGroup");
+  const gSeg = document.getElementById("gearSeg");
+  if (PRESENT_GEAR_CODES.length <= 1) {
+    gGroup.style.display = "none";
+  } else {
+    gGroup.style.display = "flex";
+    gSeg.innerHTML = "";
+    const codeMap = {
+      0: ["camera", "gearCam"],
+      1: ["drone", "gearDrone"],
+      2: ["gimbal", "gearGimbal"],
+      3: ["action", "gearAction"],
+      4: ["phone", "gearPhone"]
+    };
+    const opts = [["ALL", "gearAll"], ...PRESENT_GEAR_CODES.map(c => codeMap[c])];
+    opts.forEach(([v, k]) => {
+      const b = document.createElement("button");
+      b.className = state.gear === v ? "active" : "";
+      b.textContent = tr(k);
+      b.onclick = () => { state.gear = v; renderAll(); };
+      gSeg.appendChild(b);
+    });
+  }
+
+  // Threshold segmented
+  const tSeg = document.getElementById("threshSeg");
+  tSeg.innerHTML = "";
+  [[1, "th1"], [2, "th2"], [3, "th3"], [4, "th4"], [5, "th5"]].forEach(([v, k]) => {
+    const b = document.createElement("button");
+    b.className = state.thresh === v ? "active" : "";
+    b.textContent = tr(k);
+    b.onclick = () => { state.thresh = v; renderAll(); };
+    tSeg.appendChild(b);
+  });
+
+  // Active chips
+  const chips = document.getElementById("activeChips");
+  chips.innerHTML = "";
+  if (state.lensIdx !== null) {
+    const c = document.createElement("button");
+    c.className = "chip-active";
+    c.innerHTML = `${escHtml(tr("lensChip") + lensDisplay(state.lensIdx))} <span>×</span>`;
+    c.onclick = () => { state.lensIdx = null; renderAll(); };
+    chips.appendChild(c);
+  }
+  if (state.dateStr !== null) {
+    const c = document.createElement("button");
+    c.className = "chip-active";
+    c.innerHTML = `${escHtml(tr("dateChip") + state.dateStr)} <span>×</span>`;
+    c.onclick = () => { state.dateStr = null; renderAll(); };
+    chips.appendChild(c);
+  }
+}
+
+function renderSectionHeaders() {
+  document.getElementById("tTrend").textContent = tr("tTrend");
+  document.getElementById("dTrend").textContent = tr("dTrend");
+  document.getElementById("tCalendar").textContent = tr("tCalendar");
+  document.getElementById("dCalendar").textContent = tr("dCalendar");
+  document.getElementById("tFocal").textContent = tr("tFocal");
+  document.getElementById("dFocal").textContent = tr("dFocal");
+  document.getElementById("tQuad").textContent = tr("tQuad");
+  document.getElementById("dQuad").textContent = tr("dQuad");
+  document.getElementById("tRank").textContent = tr("tRank");
+  document.getElementById("dRank").textContent = tr("dRank");
+  document.getElementById("lblMinSamples").textContent = tr("minSamples");
+  document.getElementById("tOrient").textContent = tr("tOrient");
+  document.getElementById("dOrient").textContent = tr("dOrient");
+  document.getElementById("tHour").textContent = tr("tHour");
+  document.getElementById("dHour").textContent = tr("dHour");
+
+  const legHtml = `
+    <span class="legend-item"><span class="swatch" style="background:var(--bar-muted-hover)"></span>${tr("legShots")}</span>
+    <span class="legend-item"><span class="swatch" style="background:var(--accent)"></span>${tr("legKeepers")}</span>
+    <span class="legend-item"><span class="swatch" style="background:var(--accent-2)"></span>${tr("legRate")}</span>
+  `;
+  document.getElementById("legendTrend").innerHTML = legHtml;
+  document.getElementById("legendHour").innerHTML = legHtml;
+}
+
+function computeStats(rows) {
+  const total = rows.length;
+  let keepers = 0;
+  const activeDates = new Set();
+  const outingsMap = new Map();
+  const lensMap = new Map();
+  const camMap = new Map();
+  const focal35Counts = new Map();
+  let focalTagged = 0;
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const k = isKeeper(r, state.thresh);
+    const rt = effRating(r);
+    if (k) keepers++;
+    activeDates.add(r[0]);
+
+    const oi = r[2];
+    let om = outingsMap.get(oi);
+    if (!om) { om = { shots: 0, keepers: 0, starSum: 0, ratedCnt: 0, focal: new Map() }; outingsMap.set(oi, om); }
+    om.shots++;
+    if (k) om.keepers++;
+    if (rt > 0) { om.starSum += rt; om.ratedCnt++; }
+
+    const li = r[4];
+    let lm = lensMap.get(li);
+    if (!lm) { lm = { shots: 0, keepers: 0, starSum: 0, ratedCnt: 0, focal: new Map() }; lensMap.set(li, lm); }
+    lm.shots++;
+    if (k) lm.keepers++;
+    if (rt > 0) { lm.starSum += rt; lm.ratedCnt++; }
+
+    const ci = r[3];
+    let cm = camMap.get(ci);
+    if (!cm) { cm = { shots: 0, keepers: 0, starSum: 0, ratedCnt: 0, focal: new Map() }; camMap.set(ci, cm); }
+    cm.shots++;
+    if (k) cm.keepers++;
+    if (rt > 0) { cm.starSum += rt; cm.ratedCnt++; }
+
+    if (r[6] && r[6] > 0) {
+      const fl = Math.round(r[6]);
+      focalTagged++;
+      focal35Counts.set(fl, (focal35Counts.get(fl) || 0) + 1);
+      lm.focal.set(fl, (lm.focal.get(fl) || 0) + 1);
+      cm.focal.set(fl, (cm.focal.get(fl) || 0) + 1);
+      om.focal.set(fl, (om.focal.get(fl) || 0) + 1);
+    }
+  }
+
+  let topFocal = null, topFocalCnt = 0;
+  focal35Counts.forEach((c, fl) => { if (c > topFocalCnt) { topFocalCnt = c; topFocal = fl; } });
+
+  let mvpLens = null, mvpScore = -1;
+  lensMap.forEach((m, li) => {
+    if (DATA.lenses[li] && DATA.lenses[li].name === "" && lensMap.size > 1) return;
+    if (m.keepers > mvpScore || (m.keepers === mvpScore && mvpLens && (m.keepers / m.shots) > (mvpLens.keepers / mvpLens.shots))) {
+      mvpScore = m.keepers;
+      mvpLens = { idx: li, ...m };
+    }
+  });
+  if (!mvpLens && lensMap.size > 0) {
+    const first = lensMap.entries().next().value;
+    mvpLens = { idx: first[0], ...first[1] };
+  }
+
+  let peakOuting = null;
+  outingsMap.forEach((m, oi) => {
+    if (!peakOuting || m.keepers > peakOuting.keepers || (m.keepers === peakOuting.keepers && m.shots > peakOuting.shots)) {
+      peakOuting = { idx: oi, ...m };
+    }
+  });
+
+  return {
+    total, keepers,
+    rate: total ? (keepers / total * 100) : 0,
+    activeDays: activeDates.size,
+    avgPerOuting: outingsMap.size ? (total / outingsMap.size) : 0,
+    topFocal, topFocalPct: focalTagged ? (topFocalCnt / focalTagged * 100) : 0,
+    mvpLens, peakOuting,
+    outingsMap, lensMap, camMap
+  };
+}
+
+function renderKPIs(stats) {
+  const deduped = (DATA.health && DATA.health.deduped_pairs) || 0;
+  const folded = (DATA.health && DATA.health.burst_folded_shots) || 0;
+  const grid = document.getElementById("kpiGrid");
+  const mvpName = stats.mvpLens ? lensDisplay(stats.mvpLens.idx) : "-";
+  const mvpRate = stats.mvpLens && stats.mvpLens.shots ? (stats.mvpLens.keepers / stats.mvpLens.shots * 100).toFixed(1) : "0.0";
+  const peakName = stats.peakOuting ? DATA.outings[stats.peakOuting.idx].name : "-";
+
+  const shotsTitle = state.burstFold ? tr("kpiShots") : tr("kpiShotsRaw");
+  const shotsSub = state.burstFold
+    ? tr("kpiShotsSub", deduped.toLocaleString(), folded.toLocaleString())
+    : tr("kpiShotsSubRaw", deduped.toLocaleString());
+
+  grid.innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-title">${shotsTitle}</div>
+      <div class="kpi-value">${stats.total.toLocaleString()}</div>
+      <div class="kpi-sub">${shotsSub}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">${tr("kpiDays")}</div>
+      <div class="kpi-value">${stats.activeDays}</div>
+      <div class="kpi-sub">${tr("kpiDaysSub", Math.round(stats.avgPerOuting))}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">${tr("kpiKeepers")}</div>
+      <div class="kpi-value kpi-accent">${stats.keepers.toLocaleString()}</div>
+      <div class="kpi-sub">${tr("kpiRateSub", stats.rate.toFixed(1))}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-title">${tr("kpiFocal")}</div>
+      <div class="kpi-value">${stats.topFocal ? (stats.topFocal + "mm") : "-"}</div>
+      <div class="kpi-sub">${tr("kpiFocalSub", stats.topFocalPct.toFixed(1))}</div>
+    </div>
+    <div class="kpi-card clickable" id="kpiMvpCard">
+      <div class="kpi-title">${tr("kpiMvp")}</div>
+      <div class="kpi-value sm">${escHtml(mvpName)}</div>
+      <div class="kpi-sub">${stats.mvpLens ? tr("kpiMvpSub", stats.mvpLens.keepers, mvpRate) : "-"}</div>
+    </div>
+    <div class="kpi-card clickable" id="kpiPeakCard">
+      <div class="kpi-title">${tr("kpiPeak")}</div>
+      <div class="kpi-value sm">${escHtml(peakName)}</div>
+      <div class="kpi-sub">${stats.peakOuting ? tr("kpiPeakSub", stats.peakOuting.keepers, stats.peakOuting.shots) : "-"}</div>
+    </div>
+  `;
+  if (stats.mvpLens) {
+    document.getElementById("kpiMvpCard").onclick = () => {
+      state.lensIdx = (state.lensIdx === stats.mvpLens.idx) ? null : stats.mvpLens.idx;
+      renderAll();
+    };
+  }
+  if (stats.peakOuting) {
+    document.getElementById("kpiPeakCard").onclick = () => {
+      state.outing = String(stats.peakOuting.idx);
+      state.dateStr = null;
+      renderAll();
+    };
+  }
+}
+
+function renderDualAxisBars(container, items, opts = {}) {
+  if (!items.length) {
+    container.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`;
+    return;
+  }
+  const W = opts.width || 680, H = opts.height || 240;
+  const padL = 42, padR = 40, padT = 18, padB = 34;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const maxShots = Math.max(1, ...items.map(d => d.shots));
+  const maxRate = Math.max(20, ...items.map(d => d.rate));
+  const step = pw / items.length;
+  const bw = Math.max(8, Math.min(44, step * 0.6));
+
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  if (opts.bandsHtml) svg += opts.bandsHtml(padL, padT, pw, ph, step);
+
+  for (let g = 0; g <= 4; g++) {
+    const y = padT + ph - (ph * g / 4);
+    const val = Math.round(maxShots * g / 4);
+    const rVal = Math.round(maxRate * g / 4);
+    svg += `<line x1="${padL}" y1="${y}" x2="${padL + pw}" y2="${y}" stroke="var(--border)" stroke-dasharray="3,3"/>`;
+    svg += `<text x="${padL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="var(--text-dim)" font-family="var(--mono)">${val}</text>`;
+    svg += `<text x="${padL + pw + 6}" y="${y + 4}" text-anchor="start" font-size="10" fill="var(--accent-2)" font-family="var(--mono)">${rVal}%</text>`;
+  }
+
+  const pts = [];
+  items.forEach((d, i) => {
+    const cx = padL + step * (i + 0.5);
+    const bh = (d.shots / maxShots) * ph;
+    const kh = (d.keepers / maxShots) * ph;
+    const yAll = padT + ph - bh;
+    const yKeep = padT + ph - kh;
+    const ry = padT + ph - (d.rate / maxRate) * ph;
+    pts.push(`${cx.toFixed(1)},${ry.toFixed(1)}`);
+
+    const tip = escHtml(`<b>${d.title || d.label}</b><br/>${tr("legShots")}: ${d.shots}<br/>${tr("legKeepers")}: ${d.keepers}<br/>${tr("legRate")}: ${d.rate.toFixed(1)}%`);
+    const clickAttr = d.clickVal ? ` data-click="${escHtml(d.clickVal)}" style="cursor:pointer"` : "";
+    svg += `<g data-tip="${tip}"${clickAttr}>`;
+    svg += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${yAll.toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="3" fill="var(--bar-muted-hover)"/>`;
+    if (kh > 0) {
+      svg += `<rect x="${(cx - bw / 2).toFixed(1)}" y="${yKeep.toFixed(1)}" width="${bw.toFixed(1)}" height="${kh.toFixed(1)}" rx="3" fill="var(--accent)"/>`;
+    }
+    if (!opts.labelSkip || i % opts.labelSkip === 0) {
+      svg += `<text x="${cx.toFixed(1)}" y="${H - 12}" text-anchor="middle" font-size="${opts.fontSize || 10}" fill="var(--text-muted)">${escHtml(d.label)}</text>`;
+    }
+    svg += `</g>`;
+  });
+
+  if (pts.length > 1) {
+    svg += `<polyline fill="none" stroke="var(--accent-2)" stroke-width="2" points="${pts.join(" ")}"/>`;
+  }
+  items.forEach((d, i) => {
+    const cx = padL + step * (i + 0.5);
+    const ry = padT + ph - (d.rate / maxRate) * ph;
+    svg += `<circle cx="${cx.toFixed(1)}" cy="${ry.toFixed(1)}" r="3.2" fill="var(--accent-2)" stroke="var(--bg-card)" stroke-width="1.2" pointer-events="none"/>`;
+  });
+
+  svg += `</svg>`;
+  container.innerHTML = svg;
+  bindTip(container);
+  if (opts.onClick) {
+    container.querySelectorAll("[data-click]").forEach(el => {
+      el.addEventListener("click", () => opts.onClick(el.getAttribute("data-click")));
+    });
+  }
+}
+
+function renderTrend(rows) {
+  const ymMap = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const ym = DATE_YM[r[0]];
+    let m = ymMap.get(ym);
+    if (!m) { m = { shots: 0, keepers: 0 }; ymMap.set(ym, m); }
+    m.shots++;
+    if (isKeeper(r, state.thresh)) m.keepers++;
+  }
+  const keys = Array.from(ymMap.keys()).sort();
+  const items = keys.map(ym => {
+    const m = ymMap.get(ym);
+    return {
+      label: keys.length > 12 ? ym.slice(2) : ym.slice(5),
+      title: ym,
+      shots: m.shots,
+      keepers: m.keepers,
+      rate: m.shots ? (m.keepers / m.shots * 100) : 0,
+      clickVal: ym
+    };
+  });
+  renderDualAxisBars(document.getElementById("trendChart"), items, {
+    width: 720, height: 235,
+    labelSkip: items.length > 16 ? 2 : 1,
+    onClick: (ym) => {
+      state.year = ym.slice(0, 4);
+      state.calYear = state.year;
+      state.month = ym.slice(5, 7);
+      state.outing = "ALL";
+      state.dateStr = null;
+      renderAll();
+    }
+  });
+}
+
+function renderCalendar(rows) {
+  const tabs = document.getElementById("calYearTabs");
+  tabs.innerHTML = "";
+  const years = DATA.years;
+  if (!years.includes(state.calYear) && years.length) state.calYear = years[years.length - 1];
+  years.forEach(y => {
+    const b = document.createElement("button");
+    b.className = state.calYear === y ? "active" : "";
+    b.textContent = y;
+    b.onclick = () => { state.calYear = y; renderCalendar(rows); };
+    tabs.appendChild(b);
+  });
+
+  const container = document.getElementById("calendarChart");
+  if (!state.calYear) {
+    container.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`;
+    return;
+  }
+
+  const dayMap = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const ds = DATA.dates[r[0]];
+    if (!ds.startsWith(state.calYear + "-")) continue;
+    let d = dayMap.get(ds);
+    if (!d) { d = { shots: 0, keepers: 0, outing: DATA.outings[r[2]].name }; dayMap.set(ds, d); }
+    d.shots++;
+    if (isKeeper(r, state.thresh)) d.keepers++;
+  }
+
+  const yNum = Number(state.calYear);
+  const jan1 = new Date(Date.UTC(yNum, 0, 1));
+  const dec31 = new Date(Date.UTC(yNum, 11, 31));
+  const startDow = jan1.getUTCDay();
+  const maxDayShots = Math.max(1, ...Array.from(dayMap.values()).map(d => d.shots));
+
+  const cell = 11, gap = 2.5, step = cell + gap;
+  const padL = 24, padT = 20;
+  const weeks = Math.ceil(((dec31 - jan1) / 86400000 + 1 + startDow) / 7);
+  const W = padL + weeks * step + 8;
+  const H = padT + 7 * step + 22;
+
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  const monthSeen = new Set();
+  for (let dt = new Date(jan1); dt <= dec31; dt.setUTCDate(dt.getUTCDate() + 1)) {
+    const dayOfYear = Math.round((dt - jan1) / 86400000);
+    const totalIdx = dayOfYear + startDow;
+    const wk = Math.floor(totalIdx / 7);
+    const dow = totalIdx % 7;
+    const x = padL + wk * step;
+    const y = padT + dow * step;
+
+    const mo = dt.getUTCMonth() + 1;
+    if (!monthSeen.has(mo) && dt.getUTCDate() <= 7) {
+      monthSeen.add(mo);
+      svg += `<text x="${x}" y="${padT - 6}" font-size="9.5" fill="var(--text-dim)" font-family="var(--mono)">${String(mo).padStart(2, "0")}</text>`;
+    }
+
+    const ds = dt.toISOString().slice(0, 10);
+    const info = dayMap.get(ds);
+    let fill = "var(--heat-0)";
+    if (info) {
+      const ratio = info.shots / maxDayShots;
+      fill = ratio > 0.75 ? "var(--heat-4)" : ratio > 0.45 ? "var(--heat-3)" : ratio > 0.2 ? "var(--heat-2)" : "var(--heat-1)";
+    }
+    const isSel = state.dateStr === ds;
+    const stroke = isSel ? `stroke="var(--text)" stroke-width="1.5"` : "";
+    if (info) {
+      const rate = (info.keepers / info.shots * 100).toFixed(1);
+      const tip = escHtml(`<b>${ds}</b> (${info.outing})<br/>${tr("legShots")}: ${info.shots}<br/>${tr("legKeepers")}: ${info.keepers} (${rate}%)`);
+      svg += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="2.5" fill="${fill}" ${stroke} data-tip="${tip}" data-date="${ds}" style="cursor:pointer"/>`;
+    } else {
+      svg += `<rect x="${x}" y="${y}" width="${cell}" height="${cell}" rx="2.5" fill="${fill}"/>`;
+    }
+  }
+  ["M", "W", "F"].forEach((lbl, idx) => {
+    const dow = [1, 3, 5][idx];
+    svg += `<text x="4" y="${padT + dow * step + 9}" font-size="9" fill="var(--text-dim)" font-family="var(--mono)">${lbl}</text>`;
+  });
+  const lx = W - 120, ly = H - 12;
+  svg += `<text x="${lx - 6}" y="${ly + 9}" text-anchor="end" font-size="9" fill="var(--text-dim)">${tr("less")}</text>`;
+  [0, 1, 2, 3, 4].forEach((lv, i) => {
+    svg += `<rect x="${lx + i * 14}" y="${ly}" width="10" height="10" rx="2" fill="var(--heat-${lv})"/>`;
+  });
+  svg += `<text x="${lx + 74}" y="${ly + 9}" font-size="9" fill="var(--text-dim)">${tr("more")}</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+  bindTip(container);
+  container.querySelectorAll("[data-date]").forEach(el => {
+    el.addEventListener("click", () => {
+      const ds = el.getAttribute("data-date");
+      state.dateStr = (state.dateStr === ds) ? null : ds;
+      renderAll();
+    });
+  });
+}
+
+// 7-tier industry standard 35mm equivalent FOV buckets
+const STD_BUCKETS = [
+  { id: "ultra", key: "bUltra", max: 20 },
+  { id: "wide", key: "bWide", max: 30 },
+  { id: "street", key: "bStreet", max: 44 },
+  { id: "std", key: "bStd", max: 64 },
+  { id: "port", key: "bPort", max: 115 },
+  { id: "tele", key: "bTele", max: 250 },
+  { id: "super", key: "bSuper", max: Infinity }
+];
+
+function focalBucketId(mm) {
+  for (let i = 0; i < STD_BUCKETS.length; i++) {
+    if (mm <= STD_BUCKETS[i].max) return STD_BUCKETS[i].id;
+  }
+  return "super";
+}
+
+function renderFocalChart(rows) {
+  const mSeg = document.getElementById("focalModeSeg");
+  mSeg.innerHTML = "";
+  [["eq35", "eq35"], ["phys", "physMm"]].forEach(([v, k]) => {
+    const b = document.createElement("button");
+    b.className = state.focalMode === v ? "active" : "";
+    b.textContent = tr(k);
+    b.onclick = () => { state.focalMode = v; renderFocalChart(rows); };
+    mSeg.appendChild(b);
+  });
+
+  const gSeg = document.getElementById("focalGroupSeg");
+  gSeg.innerHTML = "";
+  [["buckets", "buckets"], ["exact", "exactMm"]].forEach(([v, k]) => {
+    const b = document.createElement("button");
+    b.className = state.focalGroup === v ? "active" : "";
+    b.textContent = tr(k);
+    b.onclick = () => { state.focalGroup = v; renderFocalChart(rows); };
+    gSeg.appendChild(b);
+  });
+
+  const idxField = state.focalMode === "eq35" ? 6 : 7;
+  const map = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const fl = r[idxField];
+    if (!fl || fl <= 0) continue;
+    const key = state.focalGroup === "buckets" ? focalBucketId(fl) : String(Math.round(fl));
+    let m = map.get(key);
+    if (!m) { m = { shots: 0, keepers: 0 }; map.set(key, m); }
+    m.shots++;
+    if (isKeeper(r, state.thresh)) m.keepers++;
+  }
+
+  let items = [];
+  if (state.focalGroup === "buckets") {
+    STD_BUCKETS.forEach(bk => {
+      const m = map.get(bk.id);
+      if (m) {
+        const lbl = tr(bk.key);
+        items.push({ label: lbl, title: lbl + " mm", shots: m.shots, keepers: m.keepers, rate: m.keepers / m.shots * 100 });
+      }
+    });
+  } else {
+    const topExact = Array.from(map.entries())
+      .sort((a, b) => b[1].shots - a[1].shots)
+      .slice(0, 16)
+      .sort((a, b) => Number(a[0]) - Number(b[0]));
+    items = topExact.map(([mm, m]) => ({
+      label: mm + "mm", title: mm + " mm", shots: m.shots, keepers: m.keepers, rate: m.keepers / m.shots * 100
+    }));
+  }
+  renderDualAxisBars(document.getElementById("focalChart"), items, { width: 700, height: 245, fontSize: 10 });
+}
+
+function renderQuadrant(rows) {
+  const container = document.getElementById("quadChart");
+  const total = rows.length;
+  if (!total) { container.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`; return; }
+
+  const lensMap = new Map();
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const li = r[4];
+    let m = lensMap.get(li);
+    if (!m) { m = { shots: 0, keepers: 0 }; lensMap.set(li, m); }
+    m.shots++;
+    if (isKeeper(r, state.thresh)) m.keepers++;
+  }
+
+  const pts = [];
+  lensMap.forEach((m, li) => {
+    if (m.shots < 3 && lensMap.size > 4) return;
+    pts.push({
+      idx: li,
+      name: lensDisplay(li),
+      shots: m.shots,
+      keepers: m.keepers,
+      share: m.shots / total * 100,
+      rate: m.keepers / m.shots * 100
+    });
+  });
+  if (!pts.length) {
+    lensMap.forEach((m, li) => pts.push({
+      idx: li, name: lensDisplay(li), shots: m.shots, keepers: m.keepers,
+      share: m.shots / total * 100, rate: m.keepers / m.shots * 100
+    }));
+  }
+
+  const maxShare = Math.max(10, ...pts.map(p => p.share)) * 1.12;
+  const maxRate = Math.max(15, ...pts.map(p => p.rate)) * 1.15;
+  const avgShare = pts.reduce((a, p) => a + p.share, 0) / pts.length;
+  const avgRate = pts.reduce((a, p) => a + p.rate, 0) / pts.length;
+  const maxKeep = Math.max(1, ...pts.map(p => p.keepers));
+
+  const W = 500, H = 265, padL = 42, padR = 16, padT = 18, padB = 30;
+  const pw = W - padL - padR, ph = H - padT - padB;
+  const sx = v => padL + (v / maxShare) * pw;
+  const sy = v => padT + ph - (v / maxRate) * ph;
+
+  let svg = `<svg class="chart" viewBox="0 0 ${W} ${H}">`;
+  for (let g = 0; g <= 4; g++) {
+    const y = padT + ph - ph * g / 4;
+    svg += `<line x1="${padL}" y1="${y}" x2="${padL + pw}" y2="${y}" stroke="var(--border)" stroke-dasharray="3,3"/>`;
+    svg += `<text x="${padL - 6}" y="${y + 3}" text-anchor="end" font-size="9.5" fill="var(--text-dim)" font-family="var(--mono)">${Math.round(maxRate * g / 4)}%</text>`;
+  }
+  const ax = sx(avgShare), ay = sy(avgRate);
+  svg += `<line x1="${ax}" y1="${padT}" x2="${ax}" y2="${padT + ph}" stroke="var(--border-strong)" stroke-dasharray="4,4"/>`;
+  svg += `<line x1="${padL}" y1="${ay}" x2="${padL + pw}" y2="${ay}" stroke="var(--border-strong)" stroke-dasharray="4,4"/>`;
+
+  svg += `<text x="${padL + pw - 4}" y="${padT + 12}" text-anchor="end" font-size="10" fill="var(--accent-2)" opacity="0.85">${tr("qTopRight")}</text>`;
+  svg += `<text x="${padL + 4}" y="${padT + 12}" text-anchor="start" font-size="10" fill="var(--text-muted)" opacity="0.85">${tr("qTopLeft")}</text>`;
+  svg += `<text x="${padL + pw - 4}" y="${padT + ph - 6}" text-anchor="end" font-size="10" fill="var(--text-muted)" opacity="0.85">${tr("qBotRight")}</text>`;
+  svg += `<text x="${padL + 4}" y="${padT + ph - 6}" text-anchor="start" font-size="10" fill="var(--text-dim)" opacity="0.85">${tr("qBotLeft")}</text>`;
+
+  pts.forEach(p => {
+    const cx = sx(p.share), cy = sy(p.rate);
+    const rad = 6 + Math.sqrt(p.keepers / maxKeep) * 16;
+    const isSel = state.lensIdx === p.idx;
+    const fill = p.rate >= avgRate ? "var(--accent)" : "var(--text-muted)";
+    const op = isSel ? "0.95" : "0.72";
+    const stroke = isSel ? "var(--text)" : "var(--bg-card)";
+    const tip = escHtml(`<b>${p.name}</b><br/>${tr("colShots")}: ${p.shots} (${p.share.toFixed(1)}%)<br/>${tr("colKeepers")}: ${p.keepers}<br/>${tr("colRate")}: ${p.rate.toFixed(1)}%`);
+    svg += `<g data-tip="${tip}" data-lens="${p.idx}" style="cursor:pointer">`;
+    svg += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${rad.toFixed(1)}" fill="${fill}" fill-opacity="${op}" stroke="${stroke}" stroke-width="${isSel ? 2.2 : 1.3}"/>`;
+    if (rad >= 11 || pts.length <= 6) {
+      const shortName = p.name.length > 18 ? p.name.slice(0, 16) + "…" : p.name;
+      svg += `<text x="${cx.toFixed(1)}" y="${(cy - rad - 4).toFixed(1)}" text-anchor="middle" font-size="9.5" fill="var(--text)">${escHtml(shortName)}</text>`;
+    }
+    svg += `</g>`;
+  });
+  svg += `<text x="${padL + pw / 2}" y="${H - 6}" text-anchor="middle" font-size="10" fill="var(--text-dim)">${tr("colShots")} % →</text>`;
+  svg += `</svg>`;
+  container.innerHTML = svg;
+  bindTip(container);
+  container.querySelectorAll("[data-lens]").forEach(el => {
+    el.addEventListener("click", () => {
+      const li = Number(el.getAttribute("data-lens"));
+      state.lensIdx = (state.lensIdx === li) ? null : li;
+      renderAll();
+    });
+  });
+}
+
+function renderRankings(rowsBase, stats) {
+  const tabSeg = document.getElementById("rankTabSeg");
+  tabSeg.innerHTML = "";
+  [["lens", "tabLens"], ["camera", "tabCam"], ["outing", "tabOuting"]].forEach(([v, k]) => {
+    const b = document.createElement("button");
+    b.className = state.rankTab === v ? "active" : "";
+    b.textContent = tr(k);
+    b.onclick = () => { state.rankTab = v; renderRankings(rowsBase, stats); };
+    tabSeg.appendChild(b);
+  });
+
+  const sortSeg = document.getElementById("rankSortSeg");
+  sortSeg.innerHTML = "";
+  [["rate", "sortRate"], ["keepers", "sortKeepers"], ["shots", "sortShots"]].forEach(([v, k]) => {
+    const b = document.createElement("button");
+    b.className = state.rankSort === v ? "active" : "";
+    b.textContent = tr(k);
+    b.onclick = () => { state.rankSort = v; renderRankings(rowsBase, stats); };
+    sortSeg.appendChild(b);
+  });
+
+  document.getElementById("minSamplesSelect").value = String(state.minSamples);
+
+  const statsForRank = state.rankTab === "lens" ? computeStats(rowsBase) : stats;
+  const srcMap = state.rankTab === "lens" ? statsForRank.lensMap : state.rankTab === "camera" ? stats.camMap : stats.outingsMap;
+  const list = [];
+  srcMap.forEach((m, idx) => {
+    if (m.shots < state.minSamples) return;
+    let topFl = "-";
+    let bestC = 0;
+    m.focal.forEach((c, fl) => { if (c > bestC) { bestC = c; topFl = fl + "mm"; } });
+    const name = state.rankTab === "lens" ? lensDisplay(idx)
+      : state.rankTab === "camera" ? DATA.cameras[idx]
+      : DATA.outings[idx].name;
+    list.push({
+      idx, name,
+      shots: m.shots,
+      keepers: m.keepers,
+      rate: m.shots ? (m.keepers / m.shots * 100) : 0,
+      avgStar: m.ratedCnt ? (m.starSum / m.ratedCnt).toFixed(1) : "-",
+      topFocal: topFl
+    });
+  });
+
+  list.sort((a, b) => {
+    if (state.rankSort === "rate") return b.rate - a.rate || b.keepers - a.keepers;
+    if (state.rankSort === "keepers") return b.keepers - a.keepers || b.rate - a.rate;
+    return b.shots - a.shots || b.keepers - a.keepers;
+  });
+
+  const wrap = document.getElementById("rankTableWrap");
+  if (!list.length) {
+    wrap.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`;
+    return;
+  }
+  const maxRate = Math.max(1, ...list.map(x => x.rate));
+
+  let html = `<table><thead><tr>
+    <th>#</th><th>${tr("colName")}</th><th class="num">${tr("colShots")}</th>
+    <th class="num">${tr("colKeepers")}</th><th class="num">${tr("colRate")}</th>
+    <th class="num">${tr("colAvgStar")}</th><th class="num">${tr("colTopFocal")}</th>
+  </tr></thead><tbody>`;
+
+  list.slice(0, 60).forEach((item, i) => {
+    const isAct = (state.rankTab === "lens" && state.lensIdx === item.idx)
+      || (state.rankTab === "outing" && String(state.outing) === String(item.idx));
+    const click = state.rankTab !== "camera";
+    const pctW = Math.min(100, item.rate / maxRate * 100).toFixed(1);
+    html += `<tr class="${click ? "clickable-row" : ""} ${isAct ? "active-row" : ""}" data-ridx="${item.idx}">
+      <td style="color:var(--text-dim);font-family:var(--mono)">${i + 1}</td>
+      <td style="font-weight:600">${escHtml(item.name)}</td>
+      <td class="num">${item.shots.toLocaleString()}</td>
+      <td class="num" style="color:var(--accent-2);font-weight:700">${item.keepers.toLocaleString()}</td>
+      <td class="num">
+        <div class="rate-bar">
+          <div class="rate-track"><div class="rate-fill" style="width:${pctW}%"></div></div>
+          <span>${item.rate.toFixed(1)}%</span>
+        </div>
+      </td>
+      <td class="num">${item.avgStar}</td>
+      <td class="num" style="color:var(--text-muted)">${item.topFocal}</td>
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  wrap.innerHTML = html;
+
+  if (state.rankTab !== "camera") {
+    wrap.querySelectorAll("tr[data-ridx]").forEach(trEl => {
+      trEl.addEventListener("click", () => {
+        const idx = Number(trEl.getAttribute("data-ridx"));
+        if (state.rankTab === "lens") {
+          state.lensIdx = (state.lensIdx === idx) ? null : idx;
+        } else if (state.rankTab === "outing") {
+          state.outing = (String(state.outing) === String(idx)) ? "ALL" : String(idx);
+          state.dateStr = null;
+        }
+        renderAll();
+      });
+    });
+  }
+}
+
+function renderOrient(rows) {
+  const ori = [{ shots: 0, keepers: 0 }, { shots: 0, keepers: 0 }, { shots: 0, keepers: 0 }];
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const k = isKeeper(r, state.thresh);
+    if (r[10] >= 0 && r[10] <= 2) {
+      ori[r[10]].shots++;
+      if (k) ori[r[10]].keepers++;
+    }
+  }
+  const oTotal = ori[0].shots + ori[1].shots + ori[2].shots;
+  const ow = document.getElementById("orientWrap");
+  if (!oTotal) {
+    ow.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`;
+    return;
+  }
+  const p0 = (ori[0].shots / oTotal * 100).toFixed(1);
+  const p1 = (ori[1].shots / oTotal * 100).toFixed(1);
+  const p2 = (ori[2].shots / oTotal * 100).toFixed(1);
+  const box = (lbl, o, pct) => {
+    const rate = o.shots ? (o.keepers / o.shots * 100).toFixed(1) : "0.0";
+    return `<div class="orient-box">
+      <div class="lbl">${lbl}</div>
+      <div class="big">${pct}%</div>
+      <div style="font-size:0.74rem;color:var(--text-muted)">${o.shots.toLocaleString()} · <span style="color:var(--accent-2)">${rate}%</span></div>
+    </div>`;
+  };
+  ow.innerHTML = `
+    <div class="orient-bar">
+      <div style="width:${p0}%;background:var(--accent)"></div>
+      <div style="width:${p1}%;background:var(--accent-2)"></div>
+      <div style="width:${p2}%;background:var(--text-muted)"></div>
+    </div>
+    <div class="orient-grid">
+      ${box(tr("landscape"), ori[0], p0)}
+      ${box(tr("portrait"), ori[1], p1)}
+      ${box(tr("square"), ori[2], p2)}
+    </div>
+  `;
+}
+
+function renderHourChart(rows) {
+  const hCounts = Array.from({ length: 24 }, (_, h) => ({
+    label: String(h).padStart(2, "0"),
+    title: String(h).padStart(2, "0") + ":00 - " + String(h).padStart(2, "0") + ":59",
+    shots: 0, keepers: 0, rate: 0
+  }));
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const h = r[1];
+    if (h >= 0 && h < 24) {
+      hCounts[h].shots++;
+      if (isKeeper(r, state.thresh)) hCounts[h].keepers++;
+    }
+  }
+  hCounts.forEach(c => { c.rate = c.shots ? (c.keepers / c.shots * 100) : 0; });
+  renderDualAxisBars(document.getElementById("hourChart"), hCounts, {
+    width: 780, height: 220,
+    bandsHtml: (padL, padT, pw, ph, step) => {
+      const b1x = padL + 5 * step, b1w = 3 * step;
+      const b2x = padL + 17 * step, b2w = 3 * step;
+      return `
+        <rect x="${b1x}" y="${padT}" width="${b1w}" height="${ph}" fill="var(--accent-2)" opacity="0.08"/>
+        <text x="${b1x + b1w / 2}" y="${padT + 12}" text-anchor="middle" font-size="9.5" fill="var(--accent-2)">${tr("dawnBand")}</text>
+        <rect x="${b2x}" y="${padT}" width="${b2w}" height="${ph}" fill="var(--accent)" opacity="0.08"/>
+        <text x="${b2x + b2w / 2}" y="${padT + 12}" text-anchor="middle" font-size="9.5" fill="var(--accent)">${tr("sunsetBand")}</text>
+      `;
+    }
+  });
+}
+
+function buildPersonaSummary(rows, stats) {
+  const tags = [];
+  let goldenCount = 0, goldenKeep = 0, portCount = 0, landCount = 0, orientTotal = 0, weekendCount = 0;
+  const gearTypes = new Set();
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    const k = isKeeper(r, state.thresh);
+    gearTypes.add(r[5]);
+    if ((r[1] >= 5 && r[1] <= 7) || (r[1] >= 17 && r[1] <= 19)) { goldenCount++; if (k) goldenKeep++; }
+    if (r[10] <= 2) {
+      orientTotal++;
+      if (r[10] === 1) portCount++;
+      if (r[10] === 0) landCount++;
+    }
+    const dt = new Date(DATA.dates[r[0]] + "T12:00:00Z");
+    const dow = dt.getUTCDay();
+    if (dow === 0 || dow === 6) weekendCount++;
+  }
+
+  if (stats.topFocal) {
+    tags.push(state.lang === "zh" ? `${stats.topFocal}mm 本命视角` : `${stats.topFocal}mm Signature`);
+  }
+  if (stats.rate >= 25 && stats.total >= 50) {
+    tags.push(state.lang === "zh" ? "稳准出片手" : "Precision Keeper");
+  }
+  if (goldenCount >= 10 && (goldenKeep / goldenCount) * 100 > stats.rate * 1.1) {
+    tags.push(state.lang === "zh" ? "黄金时刻捕手" : "Golden Hour Hunter");
+  }
+  if (orientTotal > 20 && portCount / orientTotal >= 0.42) {
+    tags.push(state.lang === "zh" ? "竖构图叙事者" : "Portrait Storyteller");
+  } else if (orientTotal > 20 && landCount / orientTotal >= 0.72) {
+    tags.push(state.lang === "zh" ? "横屏电影感玩家" : "Widescreen Framer");
+  }
+  if (rows.length > 20 && weekendCount / rows.length >= 0.52) {
+    tags.push(state.lang === "zh" ? "周末特种兵" : "Weekend Explorer");
+  }
+  if (gearTypes.size >= 2) {
+    tags.push(state.lang === "zh" ? "多机位创作者" : "Multi-Gear Creator");
+  }
+  if (!tags.length) {
+    tags.push(state.lang === "zh" ? "全能光影记录者" : "Versatile Visual Chronicler");
+  }
+
+  const hShots = new Array(24).fill(0);
+  const hKeep = new Array(24).fill(0);
+  rows.forEach(r => { hShots[r[1]]++; if (isKeeper(r, state.thresh)) hKeep[r[1]]++; });
+  let bestH = 17, bestHK = -1;
+  for (let h = 0; h < 24; h++) {
+    if (hKeep[h] > bestHK || (hKeep[h] === bestHK && hShots[h] > hShots[bestH])) { bestHK = hKeep[h]; bestH = h; }
+  }
+  const scopeParts = [];
+  if (state.year !== "ALL") scopeParts.push(state.year);
+  if (state.month !== "ALL") scopeParts.push(state.month + (state.lang === "zh" ? "月" : ""));
+  if (state.outing !== "ALL") scopeParts.push(DATA.outings[Number(state.outing)].name);
+  if (state.lensIdx !== null) scopeParts.push(lensDisplay(state.lensIdx));
+  if (state.dateStr !== null) scopeParts.push(state.dateStr);
+  const scopeLabel = scopeParts.length ? scopeParts.join(" · ") : tr("wScopeAll");
+
+  return {
+    scopeLabel,
+    tags: tags.slice(0, 5),
+    topFocal: stats.topFocal ? `${stats.topFocal}mm` : "-",
+    mvpGear: stats.mvpLens ? lensDisplay(stats.mvpLens.idx) : "-",
+    peakOuting: stats.peakOuting ? DATA.outings[stats.peakOuting.idx].name : "-",
+    goldenWindow: `${String(bestH).padStart(2, "0")}:00 - ${String((bestH + 1) % 24).padStart(2, "0")}:00`
+  };
+}
+
+function renderWrapped(rows, stats) {
+  const sec = document.getElementById("wrappedSection");
+  if (!rows.length) {
+    sec.innerHTML = `<div class="empty-msg">${tr("noData")}</div>`;
+    return;
+  }
+  const p = buildPersonaSummary(rows, stats);
+  sec.innerHTML = `
+    <div class="card-head">
+      <div>
+        <div class="card-title">${tr("wrappedTitle")} · <span style="color:var(--accent-2)">${escHtml(p.scopeLabel)}</span></div>
+        <div class="card-desc">${tr("wrappedSub")}</div>
+      </div>
+    </div>
+    <div class="persona-grid">
+      <div>
+        <div class="tag-list">${p.tags.map(tg => `<span class="tag">${escHtml(tg)}</span>`).join("")}</div>
+        <div style="font-size:0.92rem;color:var(--text-muted);line-height:1.7">
+          ${state.lang === "zh"
+            ? `在 <b style="color:var(--text)">${escHtml(p.scopeLabel)}</b> 共记录 <b style="color:var(--text)">${stats.total.toLocaleString()}</b> 次有效拍摄，跨越 <b style="color:var(--text)">${stats.activeDays}</b> 个拍摄日，收获 <b style="color:var(--accent-2)">${stats.keepers.toLocaleString()}</b> 张打星佳作（综合出片率 <b style="color:var(--accent-2)">${stats.rate.toFixed(1)}%</b>）。`
+            : `Captured <b style="color:var(--text)">${stats.total.toLocaleString()}</b> ${state.burstFold ? "compositions" : "shots"} across <b style="color:var(--text)">${stats.activeDays}</b> active days in <b style="color:var(--text)">${escHtml(p.scopeLabel)}</b>, earning <b style="color:var(--accent-2)">${stats.keepers.toLocaleString()}</b> keepers (<b style="color:var(--accent-2)">${stats.rate.toFixed(1)}%</b> keeper rate).`
+          }
+        </div>
+      </div>
+      <div class="wrapped-stats">
+        <div class="wstat"><div class="wstat-k">${tr("wFavoriteFocal")}</div><div class="wstat-v">${escHtml(p.topFocal)}</div></div>
+        <div class="wstat"><div class="wstat-k">${tr("wMvpGear")}</div><div class="wstat-v">${escHtml(p.mvpGear)}</div></div>
+        <div class="wstat"><div class="wstat-k">${tr("wPeakDay")}</div><div class="wstat-v">${escHtml(p.peakOuting)}</div></div>
+        <div class="wstat"><div class="wstat-k">${tr("wShutterWindow")}</div><div class="wstat-v">${escHtml(p.goldenWindow)}</div></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderHealthFooter() {
+  const h = DATA.health || {};
+  const dbs = (h.db_sources && h.db_sources.length) ? h.db_sources.join(", ") : tr("healthNoDb");
+  document.getElementById("healthFooter").innerHTML = `
+    <span>${tr("healthLeft", (h.logical_photos || 0).toLocaleString(), (h.deduped_pairs || 0).toLocaleString(), (h.burst_groups || 0).toLocaleString(), (h.burst_folded_shots || 0).toLocaleString(), (h.skipped_videos || 0).toLocaleString(), (h.unknown_lens || 0).toLocaleString())}</span>
+    <span>${tr("healthRight", escHtml(dbs), escHtml(h.generated_at || ""))}</span>
+  `;
+}
+
+function exportWrappedPng() {
+  const rows = getFilteredRows();
+  const stats = computeStats(rows);
+  const p = buildPersonaSummary(rows, stats);
+  const dark = state.theme === "dark";
+
+  const W = 1080, H = 1440;
+  const c = document.createElement("canvas");
+  c.width = W; c.height = H;
+  const ctx = c.getContext("2d");
+
+  ctx.fillStyle = dark ? "#0c0e12" : "#f6f4ef";
+  ctx.fillRect(0, 0, W, H);
+  const grad = ctx.createRadialGradient(W * 0.85, H * 0.14, 40, W * 0.85, H * 0.14, 620);
+  grad.addColorStop(0, dark ? "rgba(232,93,63,0.28)" : "rgba(201,71,43,0.16)");
+  grad.addColorStop(1, "transparent");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  const textMain = dark ? "#f3f1ec" : "#1b1b1d";
+  const textMute = dark ? "#9aa0ad" : "#5d616b";
+  const cardBg = dark ? "#181c24" : "#ffffff";
+  const border = dark ? "rgba(255,255,255,0.10)" : "rgba(20,20,20,0.10)";
+  const accent = dark ? "#e85d3f" : "#c9472b";
+  const accent2 = dark ? "#f0a542" : "#d68516";
+
+  const roundRect = (x, y, w, h, r) => {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + w, y, x + w, y + h, r);
+    ctx.arcTo(x + w, y + h, x, y + h, r);
+    ctx.arcTo(x, y + h, x, y, r);
+    ctx.arcTo(x, y, x + w, y, r);
+    ctx.closePath();
+  };
+
+  ctx.fillStyle = accent;
+  ctx.beginPath(); ctx.arc(92, 104, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = textMain;
+  ctx.font = "800 42px sans-serif";
+  ctx.fillText("lens-note · " + (state.lang === "zh" ? "镜头笔记" : "Photo Recap"), 122, 118);
+
+  ctx.fillStyle = accent2;
+  ctx.font = "700 32px sans-serif";
+  ctx.fillText(p.scopeLabel, 80, 186);
+
+  const bigCards = [
+    [state.burstFold ? tr("kpiShots") : tr("kpiShotsRaw"), stats.total.toLocaleString(), textMain],
+    [tr("kpiKeepers"), stats.keepers.toLocaleString(), accent2],
+    [tr("colRate"), stats.rate.toFixed(1) + "%", accent]
+  ];
+  bigCards.forEach(([k, v, col], idx) => {
+    const bx = 80 + idx * 314, by = 240, bw = 294, bh = 185;
+    roundRect(bx, by, bw, bh, 22);
+    ctx.fillStyle = cardBg; ctx.fill();
+    ctx.strokeStyle = border; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = textMute; ctx.font = "600 24px sans-serif";
+    ctx.fillText(k, bx + 28, by + 56);
+    ctx.fillStyle = col; ctx.font = "800 58px monospace";
+    ctx.fillText(v, bx + 28, by + 138);
+  });
+
+  ctx.fillStyle = textMute; ctx.font = "600 24px sans-serif";
+  ctx.fillText(state.lang === "zh" ? "年度摄影关键词" : "PHOTOGRAPHER TAGS", 80, 495);
+  let tx = 80, ty = 528;
+  ctx.font = "700 26px sans-serif";
+  p.tags.forEach(tg => {
+    const tw = ctx.measureText(tg).width + 48;
+    if (tx + tw > W - 80) { tx = 80; ty += 66; }
+    roundRect(tx, ty, tw, 50, 25);
+    ctx.fillStyle = dark ? "rgba(232,93,63,0.18)" : "rgba(201,71,43,0.12)";
+    ctx.fill();
+    ctx.fillStyle = accent2;
+    ctx.fillText(tg, tx + 24, ty + 34);
+    tx += tw + 16;
+  });
+
+  const details = [
+    [tr("wFavoriteFocal"), p.topFocal],
+    [tr("wMvpGear"), p.mvpGear],
+    [tr("wPeakDay"), p.peakOuting],
+    [tr("wShutterWindow"), p.goldenWindow]
+  ];
+  details.forEach(([k, v], idx) => {
+    const col = idx % 2, row = Math.floor(idx / 2);
+    const bx = 80 + col * 470, by = 710 + row * 195, bw = 450, bh = 170;
+    roundRect(bx, by, bw, bh, 22);
+    ctx.fillStyle = cardBg; ctx.fill();
+    ctx.strokeStyle = border; ctx.lineWidth = 2; ctx.stroke();
+    ctx.fillStyle = textMute; ctx.font = "600 24px sans-serif";
+    ctx.fillText(k, bx + 28, by + 54);
+    ctx.fillStyle = textMain; ctx.font = "700 32px sans-serif";
+    let disp = String(v);
+    while (ctx.measureText(disp).width > bw - 56 && disp.length > 4) disp = disp.slice(0, -2) + "…";
+    ctx.fillText(disp, bx + 28, by + 118);
+  });
+
+  roundRect(80, 1125, 920, 175, 22);
+  ctx.fillStyle = cardBg; ctx.fill();
+  ctx.strokeStyle = border; ctx.stroke();
+  ctx.fillStyle = textMain; ctx.font = "600 28px sans-serif";
+  const line1 = state.lang === "zh"
+    ? `活跃拍摄 ${stats.activeDays} 天 · 跨度 ${DATA.years.join(" / ") || "-"}`
+    : `${stats.activeDays} Active Days · Years: ${DATA.years.join(" / ") || "-"}`;
+  ctx.fillText(line1, 114, 1196);
+  ctx.fillStyle = textMute; ctx.font = "500 24px sans-serif";
+  ctx.fillText("lens-note · 100% Offline Photography Analytics", 114, 1252);
+
+  const a = document.createElement("a");
+  a.download = `lens-note_${p.scopeLabel.replace(/[^\w\u4e00-\u9fa5-]+/g, "_")}.png`;
+  a.href = c.toDataURL("image/png");
+  a.click();
+}
+
+function renderAll() {
+  renderControls();
+  renderSectionHeaders();
+  const rowsBase = getFilteredRows(true);
+  const rows = getFilteredRows(false);
+  const stats = computeStats(rows);
+
+  renderKPIs(stats);
+  renderTrend(rows);
+  renderCalendar(rows);
+  renderFocalChart(rows);
+  renderQuadrant(rowsBase);
+  renderRankings(rowsBase, stats);
+  renderHourChart(rows);
+  renderOrient(rows);
+  renderWrapped(rows, stats);
+  renderHealthFooter();
+}
+
+document.getElementById("yearSelect").addEventListener("change", e => {
+  state.year = e.target.value;
+  if (state.year !== "ALL") state.calYear = state.year;
+  state.outing = "ALL";
+  state.dateStr = null;
+  renderAll();
+});
+document.getElementById("monthSelect").addEventListener("change", e => {
+  state.month = e.target.value;
+  state.outing = "ALL";
+  state.dateStr = null;
+  renderAll();
+});
+document.getElementById("outingSelect").addEventListener("change", e => {
+  state.outing = e.target.value;
+  state.dateStr = null;
+  renderAll();
+});
+document.getElementById("minSamplesSelect").addEventListener("change", e => {
+  state.minSamples = Number(e.target.value);
+  renderAll();
+});
+document.getElementById("btnBurstFold").addEventListener("click", () => {
+  state.burstFold = !state.burstFold;
+  renderAll();
+});
+document.getElementById("btnTheme").addEventListener("click", () => {
+  state.theme = state.theme === "dark" ? "light" : "dark";
+  savePref("ln_theme", state.theme);
+  renderAll();
+});
+document.getElementById("btnLang").addEventListener("click", () => {
+  state.lang = state.lang === "zh" ? "en" : "zh";
+  savePref("ln_lang", state.lang);
+  renderAll();
+});
+document.getElementById("btnReset").addEventListener("click", () => {
+  state.year = "ALL";
+  state.month = "ALL";
+  state.outing = "ALL";
+  state.gear = "ALL";
+  state.thresh = 1;
+  state.burstFold = true;
+  state.lensIdx = null;
+  state.dateStr = null;
+  renderAll();
+});
+document.getElementById("btnExportPng").addEventListener("click", exportWrappedPng);
+
+renderAll();
+</script>
+</body>
+</html>
