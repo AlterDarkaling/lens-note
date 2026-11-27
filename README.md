@@ -12,6 +12,7 @@
 - **Multi-Software Rating Fusion (Read-Only)**: Combines embedded EXIF/XMP ratings, `.xmp` sidecars, and local catalogs from **Lightroom Classic** (`.lrcat`), **Capture One**, **PixCake**, **PixPretty**, and **Luminar Neo**.
 - **Multi-Root & Interference Isolation**: Combine `2025/` and `2026/` while ignoring sibling unrelated folders and excluding `Lightroom/`, `backups/`, `CLIP/`, `.git/`, etc.
 - **5 Auto-Hiding Gear Types & 7 Standard FOV Tiers**: Supports **Camera / Drone / Gimbal (e.g. Osmo Pocket 3) / Action Cam / Phone** (auto-hiding unused types), 7 industry-standard 35mm-eq focal length tiers (`≤20` / `21-30` / `31-44` / `45-64` / `65-115` / `116-250` / `>250`), plus lens drill-down to inspect any zoom lens's internal focal heatmap.
+- **Lens Active-Period Usage & Service Timeline**: Measures true active-day attendance (`first shot → last shot` span against same-gear shooting days) alongside in-period shot share, auto-tags gear status (`Workhorse` / `New Gear` / `Active` / `Low Usage` / `Inactive` / `1-Day Trial`), and renders a swimlane timeline of your gear evolution.
 - **100% Offline Single-File HTML**: Pure inline SVG & Canvas charts, **Darkroom / Archival Paper** dual themes, live **EN / 中文** toggle, and 2x **PNG share card export**.
 - **Parallel Incremental EXIF Cache**: Scans with multi-worker ExifTool batches and caches by `(path, mtime, size)` so subsequent updates take seconds. Never writes to your photo folders.
 
